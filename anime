@@ -7,10 +7,10 @@ loginpass = "changeme"
 
 ARGV.each do|a|
 
-	#if
-	#	puts "You used unknown argument! Use \"./anime --help\" or \"./anime -h\""
+	if
+		puts "You used unknown argument! Use \"./anime --help\" or \"./anime -h\""
 
-	if "#{a}" == "add"
+	elsif "#{a}" == "add"
 		puts "\e[35m#{"Add"}\e[0m AnimeList option was selected" +
 		"\nWrite ID of anime(to find it use command anime)"
 		id = STDIN.gets.chomp
@@ -31,9 +31,13 @@ ARGV.each do|a|
 		"\nScore: " + score.chomp +
 
 
-		xml = '<?xml version="1.0" encoding="UTF-8"?><entry><episode>' + episodes.chomp + '</episode><status>' + finished.chomp + '</status><score>' + score.chomp + '</score></entry>'
+		xml = '<?xml version="1.0" encoding="UTF-8"?><entry><episode>' + episodes.chomp + 
+		'</episode><status>' + finished.chomp + '</status><score>' + 
+		score.chomp + '</score></entry>'
 
-		fullcmd = "curl -u " + loginuser + ":" + loginpass + " -d data='" + xml + "' https://myanimelist.net/api/animelist/add/" + id.chomp + ".xml"
+		fullcmd = "curl -u " + loginuser + ":" + loginpass + 
+		" -d data='" + xml + "' https://myanimelist.net/api/animelist/add/" + 
+		id.chomp + ".xml"
 
 		exec "#{fullcmd}"
 		puts "\n\n"
@@ -60,9 +64,13 @@ ARGV.each do|a|
 		"\nScore: " + score.chomp +
 
 
-		xml = '<?xml version="1.0" encoding="UTF-8"?><entry><episode>' + episodes.chomp + '</episode><status>' + finished.chomp + '</status><score>' + score.chomp + '</score></entry>'
+		xml = '<?xml version="1.0" encoding="UTF-8"?><entry><episode>' + 
+		episodes.chomp + '</episode><status>' + finished.chomp + 
+		'</status><score>' + score.chomp + '</score></entry>'
 
-		fullcmd = "curl -u " + loginuser + ":" + loginpass + " -d data='" + xml + "' https://myanimelist.net/api/animelist/update/" + id.chomp + ".xml"
+		fullcmd = "curl -u " + loginuser + ":" + loginpass + 
+		" -d data='" + xml + "' https://myanimelist.net/api/animelist/update/" + 
+		id.chomp + ".xml"
 
 		exec "#{fullcmd}"
 		puts "\n\n"
@@ -77,7 +85,8 @@ ARGV.each do|a|
 		puts "DELETING" +
 		"\nAnime ID: " + id.chomp
 
-		fullcmd = "curl -u " + loginuser + ":" + loginpass + " https://myanimelist.net/api/animelist/delete/" + id.chomp + ".xml"
+		fullcmd = "curl -u " + loginuser + ":" + loginpass + 
+		" https://myanimelist.net/api/animelist/delete/" + id.chomp + ".xml"
 
 		exec "#{fullcmd}"
 		puts "\n\n"
@@ -111,7 +120,9 @@ ARGV.each do|a|
 				results.sort_by(&:score).reverse!.each do |anime|
 
 			#  puts "#{anime.title} (#{anime.english}) - #{anime.score}"
-	 			puts "\nName: \e[36m#{"#{anime.title}"}\e[0m (#{anime.id}) \nDate: #{anime.start_date} - #{anime.end_date} \nEpisodes: \e[35m#{"#{anime.episodes}"}\e[0m  \nScore: #{anime.score}\n "
+	 			puts "\nName: \e[36m#{"#{anime.title}"}\e[0m (#{anime.id})" + 
+	 			"\nDate: #{anime.start_date} - #{anime.end_date}" + 
+	 			"\nEpisodes: \e[35m#{"#{anime.episodes}"}\e[0m" + "\nScore: #{anime.score}\n"
 			end
 		end
 	end
