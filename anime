@@ -7,125 +7,112 @@ loginpass = "changeme"
 
 ARGV.each do|a|
 
-if "#{a}" == "add"
+	#if
+	#	puts "You used unknown argument! Use \"./anime --help\" or \"./anime -h\""
 
-puts "\e[35m#{"Add"}\e[0m AnimeList option was selected"
-puts ""
-puts "Write ID of anime(to find it use command anime)"
-id = STDIN.gets.chomp
-puts "How much episodes are you seen?"
-episodes = STDIN.gets.chomp
-puts "Type 1 for watching, 2 for finished, 3 for onhold, 4 for dropped or 6 for plan to watch" 
-finished = STDIN.gets.chomp
-puts "Score value: 0-10" 
-score = STDIN.gets.chomp
+	if "#{a}" == "add"
+		puts "\e[35m#{"Add"}\e[0m AnimeList option was selected" +
+		"\nWrite ID of anime(to find it use command anime)"
+		id = STDIN.gets.chomp
+		
+		puts "How much episodes are you seen?"
+		episodes = STDIN.gets.chomp
+		
+		puts "Type 1 for watching, 2 for finished, 3 for onhold, 4 for dropped or 6 for plan to watch" 
+		finished = STDIN.gets.chomp
+		
+		puts "Score value: 0-10" 
+		score = STDIN.gets.chomp
 
-puts "Overview"
-puts "Anime ID: " + id.chomp
-puts "Episodes " + episodes.chomp
-puts "Status: " + finished.chomp
-puts "Score: " + score.chomp
-
-
-xml = '<?xml version="1.0" encoding="UTF-8"?><entry><episode>' + episodes.chomp + '</episode><status>' + finished.chomp + '</status><score>' + score.chomp + '</score></entry>'
-
-fullcmd = "curl -u " + loginuser + ":" + loginpass + " -d data='" + xml + "' https://myanimelist.net/api/animelist/add/" + id.chomp + ".xml"
-
-exec "#{fullcmd}"
-puts ""
-puts ""
-
-elsif "#{a}" == "update"
-
-#update anime
-
-puts "\e[35m#{"Update"}\e[0m AnimeList option was selected"
-puts ""
-puts "Write ID of anime(to find it use command anime)"
-id = STDIN.gets.chomp
-puts "How much episodes are you seen?"
-episodes = STDIN.gets.chomp
-puts "Type 1 for watching, 2 for finished, 3 for onhold, 4 for dropped or 6 for plan to watch" 
-finished = STDIN.gets.chomp
-puts "Score value: 0-10" 
-score = STDIN.gets.chomp
-
-puts "Overview"
-puts "Anime ID: " + id.chomp
-puts "Episodes " + episodes.chomp
-puts "Status: " + finished.chomp
-puts "Score: " + score.chomp
+		puts "Overview" +
+		"\nAnime ID: " + id.chomp +
+		"\nEpisodes " + episodes.chomp +
+		"\nStatus: " + finished.chomp +
+		"\nScore: " + score.chomp +
 
 
-xml = '<?xml version="1.0" encoding="UTF-8"?><entry><episode>' + episodes.chomp + '</episode><status>' + finished.chomp + '</status><score>' + score.chomp + '</score></entry>'
+		xml = '<?xml version="1.0" encoding="UTF-8"?><entry><episode>' + episodes.chomp + '</episode><status>' + finished.chomp + '</status><score>' + score.chomp + '</score></entry>'
 
-fullcmd = "curl -u " + loginuser + ":" + loginpass + " -d data='" + xml + "' https://myanimelist.net/api/animelist/update/" + id.chomp + ".xml"
+		fullcmd = "curl -u " + loginuser + ":" + loginpass + " -d data='" + xml + "' https://myanimelist.net/api/animelist/add/" + id.chomp + ".xml"
 
-exec "#{fullcmd}"
-puts ""
-puts ""
+		exec "#{fullcmd}"
+		puts "\n\n"
 
-#koniec
+	elsif "#{a}" == "update"
+		#update anime
+		puts "\e[35m#{"Update"}\e[0m AnimeList option was selected" +
+		"\nWrite ID of anime(to find it use command anime)"
+		id = STDIN.gets.chomp
+		
+		puts "How much episodes are you seen?"
+		episodes = STDIN.gets.chomp
+		
+		puts "Type 1 for watching, 2 for finished, 3 for onhold, 4 for dropped or 6 for plan to watch" 
+		finished = STDIN.gets.chomp
+		
+		puts "Score value: 0-10" 
+		score = STDIN.gets.chomp
 
-elsif "#{a}" == "delete"
-#delete anime
-
-puts "\e[35m#{"DELETE"}\e[0m Anime from AnimeList was selected"
-puts ""
-puts "Write ID of anime(to find it use command anime)"
-id = STDIN.gets.chomp
-
-puts "DELETING"
-puts "Anime ID: " + id.chomp
-
-fullcmd = "curl -u " + loginuser + ":" + loginpass + " https://myanimelist.net/api/animelist/delete/" + id.chomp + ".xml"
-
-exec "#{fullcmd}"
-puts ""
-puts ""
-
-#koniec
-
-elsif "#{a}" == "--info"
-
-puts "Welcome to MyAnimeList CLI Client by Akimoge"
-puts ''
-puts 'To simple search anime use $ ./anime "Name of anime"'
-puts 'To add anime to your animelist use $ ./anime add'
-puts 'For updating anime on your list use $ ./anime update'
-puts 'If you want remove entry from anime list, just use $ ./anime remove'
-puts ''
+		puts "Overview" +
+		"\nAnime ID: " + id.chomp +
+		"\nEpisodes " + episodes.chomp +
+		"\nStatus: " + finished.chomp +
+		"\nScore: " + score.chomp +
 
 
-elsif "#{a}" == "list"
+		xml = '<?xml version="1.0" encoding="UTF-8"?><entry><episode>' + episodes.chomp + '</episode><status>' + finished.chomp + '</status><score>' + score.chomp + '</score></entry>'
 
-puts "Fetching AnimeList"
+		fullcmd = "curl -u " + loginuser + ":" + loginpass + " -d data='" + xml + "' https://myanimelist.net/api/animelist/update/" + id.chomp + ".xml"
 
-require 'nokogiri'
-require 'open-uri'
-urlanime = "https://myanimelist.net/malappinfo.php?u=" + loginuser + "&status=all"
+		exec "#{fullcmd}"
+		puts "\n\n"
 
-xmlanime = Nokogiri::XML(open(urlanime))
-alist = xmlanime.xpath('//series_title').map {|node| node.children.text}
+	#koniec
+	elsif "#{a}" == "delete"
+		#delete anime
+		puts "\e[35m#{"DELETE"}\e[0m Anime from AnimeList was selected" +
+		"\nWrite ID of anime(to find it use command anime)"
+		id = STDIN.gets.chomp
 
-puts alist
+		puts "DELETING" +
+		"\nAnime ID: " + id.chomp
 
+		fullcmd = "curl -u " + loginuser + ":" + loginpass + " https://myanimelist.net/api/animelist/delete/" + id.chomp + ".xml"
 
-else
+		exec "#{fullcmd}"
+		puts "\n\n"
 
-require 'myanimelist_client'
-client = MyanimelistClient.new '' + loginuser + '', '' + loginpass + ''
+	#koniec
+	elsif "#{a}" == "list"
+		puts "Fetching AnimeList"
 
-if client.verify_credentials.ok?
-  
-  results = client.search_anime "#{a}"
-puts ""
-  results.sort_by(&:score).reverse!.each do |anime|
-	
-#  puts "#{anime.title} (#{anime.english}) - #{anime.score}"
-  puts "Name: \e[36m#{"#{anime.title}"}\e[0m (#{anime.id}) \nDate: #{anime.start_date} - #{anime.end_date} \nEpisodes: \e[35m#{"#{anime.episodes}"}\e[0m  \nScore: #{anime.score}\n "
-  end
+		require 'nokogiri'
+		require 'open-uri'
+		urlanime = "https://myanimelist.net/malappinfo.php?u=" + loginuser + "&status=all"
 
-end
-end
+		xmlanime = Nokogiri::XML(open(urlanime))
+		alist = xmlanime.xpath('//series_title').map {|node| node.children.text}
+
+		puts alist
+
+	elsif "#{a}" == "--help" || "#{a}" == "-h"
+		puts "Welcome to MyAnimeList CLI Client by Akimoge\n" +
+		"\nTo simple search anime use $ ./anime \"Name of anime\"" +
+		"\nTo add anime to your animelist use $ ./anime add" +
+		"\nFor updating anime on your list use $ ./anime update" +
+		"\nIf you want remove entry from anime list, just use $ ./anime remove"
+
+	else
+		require 'myanimelist_client'
+		client = MyanimelistClient.new '' + loginuser + '', '' + loginpass + ''
+
+			if client.verify_credentials.ok?
+				results = client.search_anime "#{a}"
+				results.sort_by(&:score).reverse!.each do |anime|
+
+			#  puts "#{anime.title} (#{anime.english}) - #{anime.score}"
+	 			puts "\nName: \e[36m#{"#{anime.title}"}\e[0m (#{anime.id}) \nDate: #{anime.start_date} - #{anime.end_date} \nEpisodes: \e[35m#{"#{anime.episodes}"}\e[0m  \nScore: #{anime.score}\n "
+			end
+		end
+	end
 end
