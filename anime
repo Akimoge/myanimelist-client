@@ -10,7 +10,7 @@ ARGV.each do|a|
 	when ""
 		puts "You used unknown argument! Use \"./anime --help\" or \"./anime -h\""
 
-	when "add"
+	when "add", "a"
 		puts "\e[35m#{"Add"}\e[0m AnimeList option was selected" +
 		"\nWrite ID of anime(to find it use command anime)"
 		id = STDIN.gets.chomp
@@ -42,7 +42,7 @@ ARGV.each do|a|
 		exec "#{fullcmd}"
 		puts "\n\n"
 
-	when "update"
+	when "update", "u"
 		#update anime
 		puts "\e[35m#{"Update"}\e[0m AnimeList option was selected" +
 		"\nWrite ID of anime(to find it use command anime)"
@@ -76,7 +76,7 @@ ARGV.each do|a|
 		puts "\n\n"
 
 	#koniec
-	when "delete"
+	when "delete", "d"
 		#delete anime
 		puts "\e[35m#{"DELETE"}\e[0m Anime from AnimeList was selected" +
 		"\nWrite ID of anime(to find it use command anime)"
@@ -92,7 +92,7 @@ ARGV.each do|a|
 		puts "\n\n"
 
 	#koniec
-	when "list"
+	when "list", "l"
 		puts "Fetching AnimeList"
 
 		require 'nokogiri'
@@ -104,7 +104,7 @@ ARGV.each do|a|
 
 		puts alist
 
-	when "--help" || "#{a}" == "-h"
+	when "--help", "-h"
 		puts "Welcome to MyAnimeList CLI Client by Akimoge\n" +
 		"\nTo simple search anime use $ ./anime \"Name of anime\"" +
 		"\nTo add anime to your animelist use $ ./anime add" +
