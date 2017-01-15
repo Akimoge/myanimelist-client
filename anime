@@ -28,7 +28,7 @@ ARGV.each do|a|
 		"\nAnime ID: " + id.chomp +
 		"\nEpisodes " + episodes.chomp +
 		"\nStatus: " + finished.chomp +
-		"\nScore: " + score.chomp +
+		"\nScore: " + score.chomp
 
 
 		xml = '<?xml version="1.0" encoding="UTF-8"?><entry><episode>' + episodes.chomp + 
