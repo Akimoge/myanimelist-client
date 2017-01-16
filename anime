@@ -5,8 +5,12 @@
 loginuser = "changeme"
 loginpass = "changeme"
 
-ARGV.each do|a|
-	case "#{a}"
+var1 = ARGV[0]
+var2 = ARGV[1]
+var3 = ARGV[2]
+var4 = ARGV[3]
+
+	case var1
 	when ""
 		puts "You used unknown argument! Use \"./anime --help\" or \"./anime -h\""
 
@@ -14,14 +18,14 @@ ARGV.each do|a|
 		puts "\e[35m#{"Add"}\e[0m AnimeList option was selected" +
 		"\nWrite ID of anime(to find it use command anime)"
 		id = STDIN.gets.chomp
-		
+
 		puts "How much episodes are you seen?"
 		episodes = STDIN.gets.chomp
-		
-		puts "Type 1 for watching, 2 for finished, 3 for onhold, 4 for dropped or 6 for plan to watch" 
+
+		puts "Type 1 for watching, 2 for finished, 3 for onhold, 4 for dropped or 6 for plan to watch"
 		finished = STDIN.gets.chomp
-		
-		puts "Score value: 0-10" 
+
+		puts "Score value: 0-10"
 		score = STDIN.gets.chomp
 
 		puts "Overview" +
@@ -31,12 +35,12 @@ ARGV.each do|a|
 		"\nScore: " + score.chomp
 
 
-		xml = '<?xml version="1.0" encoding="UTF-8"?><entry><episode>' + episodes.chomp + 
-		'</episode><status>' + finished.chomp + '</status><score>' + 
+		xml = '<?xml version="1.0" encoding="UTF-8"?><entry><episode>' + episodes.chomp +
+		'</episode><status>' + finished.chomp + '</status><score>' +
 		score.chomp + '</score></entry>'
 
-		fullcmd = "curl -u " + loginuser + ":" + loginpass + 
-		" -d data='" + xml + "' https://myanimelist.net/api/animelist/add/" + 
+		fullcmd = "curl -u " + loginuser + ":" + loginpass +
+		" -d data='" + xml + "' https://myanimelist.net/api/animelist/add/" +
 		id.chomp + ".xml"
 
 		exec "#{fullcmd}"
@@ -47,14 +51,14 @@ ARGV.each do|a|
 		puts "\e[35m#{"Update"}\e[0m AnimeList option was selected" +
 		"\nWrite ID of anime(to find it use command anime)"
 		id = STDIN.gets.chomp
-		
+
 		puts "How much episodes are you seen?"
 		episodes = STDIN.gets.chomp
-		
-		puts "Type 1 for watching, 2 for finished, 3 for onhold, 4 for dropped or 6 for plan to watch" 
+
+		puts "Type 1 for watching, 2 for finished, 3 for onhold, 4 for dropped or 6 for plan to watch"
 		finished = STDIN.gets.chomp
-		
-		puts "Score value: 0-10" 
+
+		puts "Score value: 0-10"
 		score = STDIN.gets.chomp
 
 		puts "Overview" +
@@ -64,12 +68,12 @@ ARGV.each do|a|
 		"\nScore: " + score.chomp +
 
 
-		xml = '<?xml version="1.0" encoding="UTF-8"?><entry><episode>' + 
-		episodes.chomp + '</episode><status>' + finished.chomp + 
+		xml = '<?xml version="1.0" encoding="UTF-8"?><entry><episode>' +
+		episodes.chomp + '</episode><status>' + finished.chomp +
 		'</status><score>' + score.chomp + '</score></entry>'
 
-		fullcmd = "curl -u " + loginuser + ":" + loginpass + 
-		" -d data='" + xml + "' https://myanimelist.net/api/animelist/update/" + 
+		fullcmd = "curl -u " + loginuser + ":" + loginpass +
+		" -d data='" + xml + "' https://myanimelist.net/api/animelist/update/" +
 		id.chomp + ".xml"
 
 		exec "#{fullcmd}"
@@ -85,7 +89,7 @@ ARGV.each do|a|
 		puts "DELETING" +
 		"\nAnime ID: " + id.chomp
 
-		fullcmd = "curl -u " + loginuser + ":" + loginpass + 
+		fullcmd = "curl -u " + loginuser + ":" + loginpass +
 		" https://myanimelist.net/api/animelist/delete/" + id.chomp + ".xml"
 
 		exec "#{fullcmd}"
@@ -111,19 +115,18 @@ ARGV.each do|a|
 		"\nFor updating anime on your list use $ ./anime update" +
 		"\nIf you want remove entry from anime list, just use $ ./anime remove"
 
-	else
+	when "search", "-s"
 		require 'myanimelist_client'
 		client = MyanimelistClient.new '' + loginuser + '', '' + loginpass + ''
 
 			if client.verify_credentials.ok?
-				results = client.search_anime "#{a}"
+				results = client.search_anime var2
 				results.sort_by(&:score).reverse!.each do |anime|
 
 			#  puts "#{anime.title} (#{anime.english}) - #{anime.score}"
-	 			puts "\nName: \e[36m#{"#{anime.title}"}\e[0m (#{anime.id})" + 
-	 			"\nDate: #{anime.start_date} - #{anime.end_date}" + 
+	 			puts "\nName: \e[36m#{"#{anime.title}"}\e[0m (#{anime.id})" +
+	 			"\nDate: #{anime.start_date} - #{anime.end_date}" +
 	 			"\nEpisodes: \e[35m#{"#{anime.episodes}"}\e[0m" + "\nScore: #{anime.score}\n"
 			end
 		end
 	end
-end
