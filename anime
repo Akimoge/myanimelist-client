@@ -1,23 +1,21 @@
 #!/usr/bin/env ruby
 
 #user define
+require 'json'
+require 'myanimelist_client'
 
-loginuser = "changeme"
-loginpass = "changeme"
+jfile = File.read("config.json")
+json = JSON.parse(jfile)
 
-var1 = ARGV[0]
-var2 = ARGV[1]
-var3 = ARGV[2]
-var4 = ARGV[3]
+loginuser = json["User"]["Login"]
+loginpass = json["User"]["Password"]
 
-	case var1
-	when ""
-		puts "You used unknown argument! Use \"./anime --help\" or \"./anime -h\""
+ARGV << "--help" if ARGV.empty?
 
+args = ARGV
+
+case args[0]
 	when "add", "a"
-		puts "\e[35m#{"Add"}\e[0m AnimeList option was selected" +
-		"\nWrite ID of anime(to find it use command anime)"
-		id = STDIN.gets.chomp
 
 		puts "How much episodes are you seen?"
 		episodes = STDIN.gets.chomp
@@ -28,12 +26,33 @@ var4 = ARGV[3]
 		puts "Score value: 0-10"
 		score = STDIN.gets.chomp
 
+		id = 0
+
+		client = MyanimelistClient.new loginuser, loginpass
+
+		if client.verify_credentials.ok?
+			results = client.search_anime args[1]
+			i = 0
+			results.sort_by(&:title).each do |anime|
+				if i == 0
+					#  puts "#{anime.title} (#{anime.english}) - #{anime.score}"
+			 		id =  anime.id
+			 		i += 1
+			 	end
+			 end
+		end
+
 		puts "Overview" +
 		"\nAnime ID: " + id.chomp +
 		"\nEpisodes " + episodes.chomp +
 		"\nStatus: " + finished.chomp +
 		"\nScore: " + score.chomp
 
+		puts "Do you want to continue? [y/n]: "
+		answer = STDIN.gets.chomp
+		if answer.downcase == "n"
+			return
+		end
 
 		xml = '<?xml version="1.0" encoding="UTF-8"?><entry><episode>' + episodes.chomp +
 		'</episode><status>' + finished.chomp + '</status><score>' +
@@ -47,10 +66,6 @@ var4 = ARGV[3]
 		puts "\n\n"
 
 	when "update", "u"
-		#update anime
-		puts "\e[35m#{"Update"}\e[0m AnimeList option was selected" +
-		"\nWrite ID of anime(to find it use command anime)"
-		id = STDIN.gets.chomp
 
 		puts "How much episodes are you seen?"
 		episodes = STDIN.gets.chomp
@@ -61,12 +76,33 @@ var4 = ARGV[3]
 		puts "Score value: 0-10"
 		score = STDIN.gets.chomp
 
+		id = 0
+
+		client = MyanimelistClient.new loginuser, loginpass
+
+		if client.verify_credentials.ok?
+			results = client.search_anime args[1]
+			i = 0
+			results.sort_by(&:title).each do |anime|
+				if i == 0
+					#  puts "#{anime.title} (#{anime.english}) - #{anime.score}"
+			 		id =  anime.id
+			 		i += 1
+			 	end
+			 end
+		end
+
 		puts "Overview" +
 		"\nAnime ID: " + id.chomp +
 		"\nEpisodes " + episodes.chomp +
 		"\nStatus: " + finished.chomp +
-		"\nScore: " + score.chomp +
+		"\nScore: " + score.chomp
 
+		puts "Do you want to continue? [y/n]: "
+		answer = STDIN.gets.chomp
+		if answer.downcase == "n"
+			return
+		end
 
 		xml = '<?xml version="1.0" encoding="UTF-8"?><entry><episode>' +
 		episodes.chomp + '</episode><status>' + finished.chomp +
@@ -82,12 +118,33 @@ var4 = ARGV[3]
 	#koniec
 	when "delete", "d"
 		#delete anime
-		puts "\e[35m#{"DELETE"}\e[0m Anime from AnimeList was selected" +
-		"\nWrite ID of anime(to find it use command anime)"
-		id = STDIN.gets.chomp
+		#puts "\e[35m#{"DELETE"}\e[0m Anime from AnimeList was selected" +
+		#"\nWrite ID of anime(to find it use command anime)"
+		#id = STDIN.gets.chomp
+		id = 0
+
+		client = MyanimelistClient.new loginuser, loginpass
+
+		if client.verify_credentials.ok?
+			results = client.search_anime args[1]
+			i = 0
+			results.sort_by(&:title).each do |anime|
+				if i == 0
+					#  puts "#{anime.title} (#{anime.english}) - #{anime.score}"
+			 		id =  anime.id
+			 		i += 1
+			 	end
+			 end
+		end
 
 		puts "DELETING" +
 		"\nAnime ID: " + id.chomp
+
+		puts "Do you want to continue? [y/n]: "
+		answer = STDIN.gets.chomp
+		if answer.downcase == "n"
+			return
+		end
 
 		fullcmd = "curl -u " + loginuser + ":" + loginpass +
 		" https://myanimelist.net/api/animelist/delete/" + id.chomp + ".xml"
@@ -116,12 +173,11 @@ var4 = ARGV[3]
 		"\nIf you want remove entry from anime list, just use $ ./anime remove"
 
 	when "search", "-s"
-		require 'myanimelist_client'
-		client = MyanimelistClient.new '' + loginuser + '', '' + loginpass + ''
+		client = MyanimelistClient.new loginuser, loginpass
 
 			if client.verify_credentials.ok?
-				results = client.search_anime var2
-				results.sort_by(&:score).reverse!.each do |anime|
+				results = client.search_anime args[1]
+				results.sort_by(&:title).each do |anime|
 
 			#  puts "#{anime.title} (#{anime.english}) - #{anime.score}"
 	 			puts "\nName: \e[36m#{"#{anime.title}"}\e[0m (#{anime.id})" +
