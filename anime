@@ -179,7 +179,6 @@ case args[0]
 				results = client.search_anime args[1]
 				results.sort_by(&:title).each do |anime|
 
-			#  puts "#{anime.title} (#{anime.english}) - #{anime.score}"
 	 			puts "\nName: \e[36m#{"#{anime.title}"}\e[0m (#{anime.id})" +
 	 			"\nDate: #{anime.start_date} - #{anime.end_date}" +
 	 			"\nEpisodes: \e[35m#{"#{anime.episodes}"}\e[0m" + "\nScore: #{anime.score}\n"
