@@ -4,7 +4,7 @@
 require 'json'
 require 'myanimelist_client'
 
-jfile = File.read("config.json")
+jfile = File.read("/etc/mal/config.json")
 json = JSON.parse(jfile)
 
 loginuser = json["User"]["Login"]
