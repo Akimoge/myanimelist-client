@@ -165,12 +165,31 @@ case args[0]
 
 		puts alist
 
+	when "info", "i"
+                puts "Fetching Info about anime"
+		client = MyanimelistClient.new loginuser, loginpass
+
+                                if client.verify_credentials.ok?
+                        results = client.search_anime args[1]
+                        i = 0
+                        results.sort_by(&:title).each do |anime|
+                                if i == 0
+
+
+                                        i += 1
+                        puts "\n#{anime.title}\n#{anime.start_date} - #{anime.end_date}\nScore: #{anime.score}\n\n#{anime.synopsis}\n\n".gsub('<br />', '').gsub("&#039;", "'").gsub$
+                                end
+                         end
+                end
+ 
+
+
 	when "--help", "-h"
 		puts "Welcome to MyAnimeList CLI Client by Akimoge\n" +
 		"\nTo simple search anime use $ ./anime \"Name of anime\"" +
 		"\nTo add anime to your animelist use $ ./anime add" +
 		"\nFor updating anime on your list use $ ./anime update" +
-		"\nIf you want remove entry from anime list, just use $ ./anime remove"
+		"\nIf you want remove entry from anime list, just use $ ./anime delete"
 
 	when "search", "-s"
 		client = MyanimelistClient.new loginuser, loginpass
