@@ -177,7 +177,7 @@ case args[0]
 
 
                                         i += 1
-                        puts "\n#{anime.title}\n#{anime.start_date} - #{anime.end_date}\nScore: #{anime.score}\n\n#{anime.synopsis}\n\n".gsub('<br />', '').gsub("&#039;", "'").gsub$
+                        puts "\n#{anime.title}\n#{anime.start_date} - #{anime.end_date}\nScore: #{anime.score}\n\n#{anime.synopsis}\n\n".gsub('<br />', '').gsub("&#039;", "'").gsub('&quot;', '"')
                                 end
                          end
                 end
