@@ -1,0 +1,199 @@
+#!/usr/bin/env ruby
+
+#user define
+require 'json'
+require 'myanimelist_client'
+
+jfile = File.read("/etc/mal/config.json")
+json = JSON.parse(jfile)
+
+loginuser = json["User"]["Login"]
+loginpass = json["User"]["Password"]
+
+ARGV << "--help" if ARGV.empty?
+
+args = ARGV
+
+case args[0]
+	when "add", "a"
+
+		puts "How much volumes are you read?"
+		volumes = STDIN.gets.chomp
+
+
+		puts "How much chapters are you read?"
+		chapters = STDIN.gets.chomp
+
+		puts "Type 1 for reading, 2 for finished, 3 for onhold, 4 for dropped or 6 for plan to read"
+		finished = STDIN.gets.chomp
+
+		puts "Score value: 0-10"
+		score = STDIN.gets.chomp
+
+		id = 0
+
+		client = MyanimelistClient.new loginuser, loginpass
+
+		if client.verify_credentials.ok?
+			results = client.search_manga args[1]
+			i = 0
+			results.sort_by(&:title).each do |manga|
+				if i == 0
+					#  puts "#{anime.title} (#{anime.english}) - #{anime.score}"
+			 		id =  manga.id
+			 		i += 1
+			 	end
+			 end
+		end
+
+		puts "Overview" +
+		"\nManga ID: " + id.chomp +
+		"\nChapters " + chapters.chomp +
+		"\nVolumes " + volumes.chomp +
+		"\nStatus: " + finished.chomp +
+		"\nScore: " + score.chomp
+
+		puts "Do you want to continue? [y/n]: "
+		answer = STDIN.gets.chomp
+		if answer.downcase == "n"
+			return
+		end
+
+		xml = '<?xml version="1.0" encoding="UTF-8"?><entry><chapter>' + chapters.chomp +
+		'</chapter><volumes>' + volumes.chomp +
+		'</volumes><status>' + finished.chomp + '</status><score>' +
+		score.chomp + '</score></entry>'
+
+		fullcmd = "curl -u " + loginuser + ":" + loginpass +
+		" -d data='" + xml + "' https://myanimelist.net/api/mangalist/add/" +
+		id.chomp + ".xml"
+
+		exec "#{fullcmd}"
+		puts "\n\n"
+
+	when "update", "u"
+
+		puts "How much volumes are you read?"
+		volumes = STDIN.gets.chomp
+
+
+		puts "How much chapters are you read?"
+		chapters = STDIN.gets.chomp
+
+		puts "Type 1 for reading, 2 for finished, 3 for onhold, 4 for dropped or 6 for plan to read"
+		finished = STDIN.gets.chomp
+
+		puts "Score value: 0-10"
+		score = STDIN.gets.chomp
+
+		id = 0
+
+		client = MyanimelistClient.new loginuser, loginpass
+
+		if client.verify_credentials.ok?
+			results = client.search_manga args[1]
+			i = 0
+			results.sort_by(&:title).each do |manga|
+				if i == 0
+					#  puts "#{anime.title} (#{anime.english}) - #{anime.score}"
+			 		id =  manga.id
+			 		i += 1
+			 	end
+			 end
+		end
+
+		puts "Overview" +
+		"\nManga ID: " + id.chomp +
+		"\nChapters " + chapters.chomp +
+		"\nVolumes " + volumes.chomp +
+		"\nStatus: " + finished.chomp +
+		"\nScore: " + score.chomp
+
+		puts "Do you want to continue? [y/n]: "
+		answer = STDIN.gets.chomp
+		if answer.downcase == "n"
+			return
+		end
+
+		xml = '<?xml version="1.0" encoding="UTF-8"?><entry><chapter>' + chapters.chomp +
+		'</chapter><volumes>' + volumes.chomp +
+		'</volumes><status>' + finished.chomp + '</status><score>' +
+		score.chomp + '</score></entry>'
+
+		fullcmd = "curl -u " + loginuser + ":" + loginpass +
+		" -d data='" + xml + "' https://myanimelist.net/api/mangalist/update/" +
+		id.chomp + ".xml"
+
+		exec "#{fullcmd}"
+		puts "\n\n"
+
+	#koniec
+	when "delete", "d"
+		#delete anime
+		#puts "\e[35m#{"DELETE"}\e[0m Anime from AnimeList was selected" +
+		#"\nWrite ID of anime(to find it use command anime)"
+		#id = STDIN.gets.chomp
+		id = 0
+
+		client = MyanimelistClient.new loginuser, loginpass
+
+		if client.verify_credentials.ok?
+			results = client.search_manga args[1]
+			i = 0
+			results.sort_by(&:title).each do |manga|
+				if i == 0
+
+			 		id =  manga.id
+			 		i += 1
+			 	end
+			 end
+		end
+
+		puts "DELETING" +
+		"\nAnime ID: " + id.chomp
+
+		puts "Do you want to continue? [y/n]: "
+		answer = STDIN.gets.chomp
+		if answer.downcase == "n"
+			return
+		end
+
+		fullcmd = "curl -u " + loginuser + ":" + loginpass +
+		" https://myanimelist.net/api/mangalist/delete/" + id.chomp + ".xml"
+
+		exec "#{fullcmd}"
+		puts "\n\n"
+
+	#koniec
+	when "list", "l"
+		puts "Fetching MangaList"
+
+		require 'nokogiri'
+		require 'open-uri'
+		urlanime = "https://myanimelist.net/malappinfo.php?u=" + loginuser + "&status=all&type=manga"
+
+		xmlanime = Nokogiri::XML(open(urlanime))
+		alist = xmlanime.xpath('//series_title').map {|node| node.children.text}
+
+		puts alist
+
+	when "--help", "-h"
+		puts "Welcome to MyAnimeList CLI Client by Akimoge\n" +
+		"\nTo simple search manga use $ manga search \"Name of manga\"" +
+		"\nTo add anime to your animelist use $ manga add" +
+		"\nFor updating anime on your list use $ manga update" +
+		"\nIf you want remove entry from anime list, just use $ manga delete"
+
+	when "search", "-s"
+		client = MyanimelistClient.new loginuser, loginpass
+
+			if client.verify_credentials.ok?
+				results = client.search_manga args[1]
+				results.sort_by(&:title).each do |manga|
+
+	 			puts "\nName: \e[36m#{"#{manga.title}"}\e[0m (#{manga.id})" +
+	 			"\nDate: #{manga.start_date} - #{manga.end_date}" +
+	 			"\nVolumes: \e[35m#{"#{manga.volumes}"}\e[0m" + "\nChapters: \e[35m#{"#{manga.chapters}"}\e[0m" + "\nScore: #{manga.score}\n"
+			end
+		end
+	end
