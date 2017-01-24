@@ -169,7 +169,7 @@ case args[0]
                 puts "Fetching Info about anime"
 		client = MyanimelistClient.new loginuser, loginpass
 
-                                if client.verify_credentials.ok?
+                if client.verify_credentials.ok?
                         results = client.search_anime args[1]
                         i = 0
                         results.sort_by(&:title).each do |anime|
