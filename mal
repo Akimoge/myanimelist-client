@@ -1,0 +1,175 @@
+#!/usr/bin/env ruby
+
+class MAL
+	require 'json'
+	require 'myanimelist_client'
+	require 'nokogiri'
+	require 'open-uri'
+	
+	def initialize args
+		args << "--help" if args.empty?
+		if args[0] == "anime"
+			struct = Struct.new(:id, :episodes, :finished, :score)
+			@kopernik = struct.new("","","","")
+		elsif args[0] == "manga"
+			struct = Struct.new(:id, :volumes, :chapters, :finished, :score)
+			@kopernik = struct.new("","","","","")
+		elsif args[0] == "--help"
+			puts "Anime or manga is that what want you?\nMay force will guide you."
+			return false
+		end
+		@type = args[0]
+		@mode = args[1]
+		@name = args[2]
+		jfile = File.read(ENV['HOME'] + "/.config/mal/config.json")
+		json = JSON.parse(jfile)
+		@loginuser = json["User"]["Login"]
+		@loginpass = json["User"]["Password"]
+		@client = MyanimelistClient.new @loginuser, @loginpass
+		if !@client.verify_credentials.ok?
+			puts "You have wrong user credentials bro!"
+		end
+	end
+	def confirmedChanges?
+		puts "Do you want to continue? [y/n]: "
+		if STDIN.gets.downcase == 'n'
+			return false
+		end
+		return true
+	end
+	def overview
+		if @mode == "delete"
+				puts "DELETING" +
+				"\n#{type.capitalize} ID: " + @kopernik[:id].chomp
+		else
+			if @type == "anime"
+				puts "Overview" +
+				"\nAnime ID: " + @kopernik[:id].chomp +
+				"\nEpisodes " + @kopernik[:episodes].chomp +
+				"\nStatus: " + @kopernik[:finished].chomp +
+				"\nScore: " + @kopernik[:score].chomp
+			else
+				puts "Overview" +
+				"\nManga ID: " + @kopernik[:id].chomp +
+				"\nChapters " + @kopernik[:chapters].chomp +
+				"\nVolumes " + @kopernik[:volumes].chomp +
+				"\nStatus: " + @kopernik[:finished].chomp +
+				"\nScore: " + @kopernik[:score].chomp
+			end
+		end
+	end
+	def questions
+		if @type == "anime"
+			puts "How much episodes are you seen?"
+			@kopernik[:episodes] = STDIN.gets.chomp
+
+			puts "Type 1 for watching, 2 for finished, 3 for onhold, 4 for dropped or 6 for plan to watch"
+			@kopernik[:finished] = STDIN.gets.chomp
+
+			puts "Score value: 0-10"
+			@kopernik[:score] = STDIN.gets.chomp
+		else
+			puts "How much volumes are you read?"
+			@kopernik[:volumes] = STDIN.gets.chomp
+
+			puts "How much chapters are you read?"
+			@kopernik[:chapters] = STDIN.gets.chomp
+
+			puts "Type 1 for reading, 2 for finished, 3 for onhold, 4 for dropped or 6 for plan to read"
+			@kopernik[:finished] = STDIN.gets.chomp
+
+			puts "Score value: 0-10"
+			@kopernik[:score] = STDIN.gets.chomp
+		end
+	end
+	def mal_update
+		if @mode == "delete"
+			fullcmd = "curl -u " + @loginuser + ":" + @loginpass +
+			" https://myanimelist.net/api/#{type.chomp}list/delete/" + 
+			@kopernik[:id].chomp + ".xml"
+		else
+			if @type == "anime"
+				xml = '<?xml version="1.0" encoding="UTF-8"?><entry><episode>' + @kopernik[:episodes].chomp +
+				'</episode><status>' + @kopernik[:finished] + '</status><score>' +
+				@kopernik[:score].chomp + '</score></entry>'
+
+				fullcmd = "curl -u " + @loginuser + ":" + @loginpass +
+				" -d data='" + xml + "' https://myanimelist.net/api/animelist/#{@mode.chomp}/" +
+				@kopernik[:id] + ".xml"
+			else
+				xml = '<?xml version="1.0" encoding="UTF-8"?><entry><chapter>' + @kopernik[:chapters].chomp +
+				'</chapter><volumes>' + @kopernik[:volumes].chomp +
+				'</volumes><status>' + @kopernik[:finished].chomp + '</status><score>' +
+				@kopernik[:score].chomp + '</score></entry>'
+
+				fullcmd = "curl -u " + @loginuser + ":" + @loginpass +
+				" -d data='" + xml + "' https://myanimelist.net/api/mangalist/update/" +
+				@kopernik[:id].chomp + ".xml"
+			end
+		end
+		exec "#{fullcmd}"
+	end
+	def getID
+		if @type == "anime"
+			results = @client.search_anime @name
+        else
+        	results = @client.search_manga @name
+        end
+        i = 0
+        results.sort_by(&:title).each do |sorted|
+            if i == 0
+                i += 1
+                @kopernik[:id] = sorted.id
+            end
+        end
+	end
+	def start
+		case @mode
+		when "add", "a", "update", "u"
+			questions()
+			getID()
+			overview()
+			if confirmedChanges?
+				mal_update()
+			end
+		when "delete"
+			getID()
+			overview()
+			if confirmedChanges?
+				mal_update()
+			end
+		when "list", "l"
+			puts "Fetching AnimeList"
+			if @type == "anime"
+				url = "https://myanimelist.net/malappinfo.php?u=" + @loginuser + "&status=all"
+			else
+				url = "https://myanimelist.net/malappinfo.php?u=" + @loginuser + "&status=all&type=manga"
+			end
+			xml = Nokogiri::XML(open(url))
+			list = xml.xpath('//series_title').map {|node| node.children.text}
+			puts list
+		when "search", "s"
+			if @type == "anime"
+				results = @client.search_anime @name
+        		results.sort_by(&:title).each do |anime|
+	 				puts "\nName: \e[36m#{"#{anime.title}"}\e[0m (#{anime.id})" +
+	 				"\nDate: #{anime.start_date} - #{anime.end_date}" +
+	 				"\nEpisodes: \e[35m#{"#{anime.episodes}"}\e[0m" + "\nScore: #{anime.score}\n"
+	 			end
+        	else
+        		results = @client.search_manga @name
+        		results.sort_by(&:title).each do |manga|
+	 				puts "\nName: \e[36m#{"#{manga.title}"}\e[0m (#{manga.id})" +
+	 				"\nDate: #{manga.start_date} - #{manga.end_date}" +
+	 				"\nVolumes: \e[35m#{"#{manga.volumes}"}\e[0m" + "\nChapters: \e[35m#{"#{manga.chapters}"}\e[0m" + 
+	 				"\nScore: #{manga.score}\n"
+       			end
+       		end
+		else 
+			puts "Wrong argument bro!\n"
+		end		
+	end
+end
+
+mal = MAL.new(ARGV)
+mal.start()
