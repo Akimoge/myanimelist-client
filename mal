@@ -15,7 +15,16 @@ class MAL
 			struct = Struct.new(:id, :volumes, :chapters, :finished, :score)
 			@kopernik = struct.new("","","","","")
 		elsif args[0] == "--help"
-			abort "Anime, manga or you wanna be a the greatest villan?" #"Anime or manga is that what want you?\nMay force will guide you."
+			abort "Anime, manga or you wanna be a the greatest villan?\n" + #"Anime or manga is that what want you?\nMay force will guide you."
+			"Usage: mal [--help] <anime | manga> <command> [<args>]\n\n" +
+			"Here are commands you can use:\n\n" +
+			"Managing entries in your MyAnimeList:\n" +
+			"add - Add an entry\n" +
+			"update - Update entry\n" +
+			"delete - Delete entry\n\n" +
+			"Informations about your MyAnimeList and searching:\n" +
+			"list - Fetch list of your anime or manga\n" +
+			"search - For searching anime or manga (it search anything what\n\tinclude name you search)"
 		end
 		@type = args[0]
 		@mode = args[1]
