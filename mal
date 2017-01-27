@@ -15,8 +15,7 @@ class MAL
 			struct = Struct.new(:id, :volumes, :chapters, :finished, :score)
 			@kopernik = struct.new("","","","","")
 		elsif args[0] == "--help"
-			puts "Anime or manga is that what want you?\nMay force will guide you."
-			return false
+			abort "Anime, manga or you wanna be a the greatest villan?" #"Anime or manga is that what want you?\nMay force will guide you."
 		end
 		@type = args[0]
 		@mode = args[1]
@@ -27,7 +26,7 @@ class MAL
 		@loginpass = json["User"]["Password"]
 		@client = MyanimelistClient.new @loginuser, @loginpass
 		if !@client.verify_credentials.ok?
-			puts "You have wrong user credentials bro!"
+			abort "You have wrong user credentials bro!"
 		end
 	end
 	def confirmedChanges?
@@ -166,8 +165,8 @@ class MAL
        			end
        		end
 		else 
-			puts "Wrong argument bro!\n"
-		end		
+			abort "Wrong argument bro!\n"
+		end
 	end
 end
 
