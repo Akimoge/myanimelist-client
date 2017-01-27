@@ -7,7 +7,14 @@ class MAL
 	require 'open-uri'
 	
 	def initialize args
+		configPath = ENV['HOME'] + "/.config/mal/config.json"
+		if !File.exist? configPath
+			system( "cp /etc/mal/config.sample ~/.config/mal/config.json" )
+			args[0] = "user"
+		end
 		args << "--help" if args.empty?
+		jfile = File.read(configPath)
+		json = JSON.parse(jfile)
 		if args[0] == "anime"
 			struct = Struct.new(:id, :episodes, :finished, :score)
 			@kopernik = struct.new("","","","")
@@ -15,7 +22,7 @@ class MAL
 			struct = Struct.new(:id, :volumes, :chapters, :finished, :score)
 			@kopernik = struct.new("","","","","")
 		elsif args[0] == "--help"
-			abort "Anime, manga or you wanna be a the greatest villan?\n" + #"Anime or manga is that what want you?\nMay force will guide you."
+			abort "Anime, manga or you wanna be the greatest villan?\n" + #"Anime or manga is that what want you?\nMay force will guide you."
 			"Usage: mal [--help] <anime | manga> <command> [<args>]\n\n" +
 			"Here are commands you can use:\n\n" +
 			"Managing entries in your MyAnimeList:\n" +
@@ -24,17 +31,29 @@ class MAL
 			"delete - Delete entry\n\n" +
 			"Informations about your MyAnimeList and searching:\n" +
 			"list - Fetch list of your anime or manga\n" +
-			"search - For searching anime or manga (it search anything what\n\tinclude name you search)"
+			"search - For searching anime or manga (it search anything what\n\tinclude name you search)\n\n" +
+			"info - It's basicaly \"search\" but with synopsis" +
+			"user - to change user credentials"
+		elsif args[0] == "user"
+			require 'io/console'
+			File.open(ENV['HOME'] + "/.config/mal/config.json", "w") do |file|
+				puts "Please type your username:"
+				json["User"]["Login"] = STDIN.gets.chomp
+				puts "Now your password please. I swear I will not send it to anyone MUHAHAHAHA.\n" +
+				"Seriously if you are afraid you can view the code in /etc/bin/mal."
+				json["User"]["Password"] = STDIN.noecho(&:gets).chomp
+				file.write(JSON.pretty_generate(json))
+				File.chmod(0600, configPath)
+			end
+			abort
 		end
 		@type = args[0]
 		@mode = args[1]
 		@name = args[2]
-		jfile = File.read(ENV['HOME'] + "/.config/mal/config.json")
-		json = JSON.parse(jfile)
 		@loginuser = json["User"]["Login"]
 		@loginpass = json["User"]["Password"]
 		@client = MyanimelistClient.new @loginuser, @loginpass
-		if !@client.verify_credentials.ok?
+		if @client.verify_credentials.error?
 			abort "You have wrong user credentials bro!"
 		end
 	end
@@ -53,22 +72,20 @@ class MAL
 			if @type == "anime"
 				puts "Overview" +
 				"\nAnime ID: " + @kopernik[:id].chomp +
-				"\nEpisodes " + @kopernik[:episodes].chomp +
-				"\nStatus: " + @kopernik[:finished].chomp +
-				"\nScore: " + @kopernik[:score].chomp
+				"\nEpisodes " + @kopernik[:episodes].chomp
 			else
 				puts "Overview" +
 				"\nManga ID: " + @kopernik[:id].chomp +
 				"\nChapters " + @kopernik[:chapters].chomp +
 				"\nVolumes " + @kopernik[:volumes].chomp +
-				"\nStatus: " + @kopernik[:finished].chomp +
-				"\nScore: " + @kopernik[:score].chomp
 			end
+			puts "Status: " + @kopernik[:finished].chomp +
+				"\nScore: " + @kopernik[:score].chomp
 		end
 	end
 	def questions
 		if @type == "anime"
-			puts "How much episodes are you seen?"
+			puts "How many episodes have you seen?"
 			@kopernik[:episodes] = STDIN.gets.chomp
 
 			puts "Type 1 for watching, 2 for finished, 3 for onhold, 4 for dropped or 6 for plan to watch"
@@ -77,10 +94,10 @@ class MAL
 			puts "Score value: 0-10"
 			@kopernik[:score] = STDIN.gets.chomp
 		else
-			puts "How much volumes are you read?"
+			puts "How many volumes have you readed?"
 			@kopernik[:volumes] = STDIN.gets.chomp
 
-			puts "How much chapters are you read?"
+			puts "How many chapters have you readed?"
 			@kopernik[:chapters] = STDIN.gets.chomp
 
 			puts "Type 1 for reading, 2 for finished, 3 for onhold, 4 for dropped or 6 for plan to read"
@@ -131,6 +148,14 @@ class MAL
             end
         end
 	end
+	def synopsis_gsub(synopsis)
+		synopsis = synopsis.gsub("<br />"," ")
+	 	synopsis = synopsis.gsub("&#039;","\'")
+	 	synopsis = synopsis.gsub("&quot;","\"")
+	 	synopsis = synopsis.gsub("&mdash;","—")
+	 	synopsis = synopsis.gsub("&rsquo;","’")
+	 	return synopsis
+	end
 	def start
 		case @mode
 		when "add", "a", "update", "u"
@@ -173,7 +198,22 @@ class MAL
 	 				"\nScore: #{manga.score}\n"
        			end
        		end
-		else 
+		when "info", "i"
+			results = @client.search_anime @name
+        	results.sort_by(&:title).each do |anime|
+	 			puts "\nName: \e[36m#{"#{anime.title}"}\e[0m (#{anime.id})" +
+	 			"\nDate: #{anime.start_date} - #{anime.end_date}" +
+	 			"\nEpisodes: \e[35m#{"#{anime.episodes}"}\e[0m" + "\nScore: #{anime.score}\n\n" +
+	 			"Synopsis:\n#{synopsis_gsub(anime.synopsis)}" 
+	 		end
+	 		results = @client.search_manga @name
+        		results.sort_by(&:title).each do |manga|
+	 				puts "\nName: \e[36m#{"#{manga.title}"}\e[0m (#{manga.id})" +
+	 				"\nDate: #{manga.start_date} - #{manga.end_date}" +
+	 				"\nVolumes: \e[35m#{"#{manga.volumes}"}\e[0m" + "\nChapters: \e[35m#{"#{manga.chapters}"}\e[0m" + 
+	 				"\nScore: #{manga.score}\n" + "Synopsis:\n#{synopsis_gsub(manga.synopsis)}" 
+       			end
+		else
 			abort "Wrong argument bro!\n"
 		end
 	end
