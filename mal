@@ -157,8 +157,10 @@ class MAL
 	 	synopsis = synopsis.gsub("[/spoiler]","")
 	 	synopsis = synopsis.gsub("[i]","\e[3m")
 	 	synopsis = synopsis.gsub("[/i]","\e[0m")
+	 	synopsis = synopsis.gsub("[url]","")
+	 	synopsis = synopsis.gsub("[/url]","")
 	 	synopsis = synopsis.gsub("&times;","×")
-	 	synopsis = synopsis.gsub("&rsquo","’")
+	 	synopsis = synopsis.gsub("&rsquo;","’")
 	 	
 	 	return synopsis
 	end
