@@ -11,6 +11,7 @@ class MAL
 		if !File.exist? configPath
 			system( "cp /etc/mal/config.sample ~/.config/mal/config.json" )
 			args[0] = "user"
+			File.chmod(0600, configPath)
 		end
 		args << "--help" if args.empty?
 		jfile = File.read(configPath)
@@ -43,7 +44,6 @@ class MAL
 				"Seriously if you are afraid you can view the code in /etc/bin/mal."
 				json["User"]["Password"] = STDIN.noecho(&:gets).chomp
 				file.write(JSON.pretty_generate(json))
-				File.chmod(0600, configPath)
 			end
 			abort
 		end
@@ -66,8 +66,8 @@ class MAL
 	end
 	def overview
 		if @mode == "delete"
-				puts "DELETING" +
-				"\n#{type.capitalize} ID: " + @kopernik[:id].chomp
+			puts "DELETING" +
+			"\n#{type.capitalize} ID: " + @kopernik[:id].chomp
 		else
 			if @type == "anime"
 				puts "Overview" +
@@ -77,7 +77,7 @@ class MAL
 				puts "Overview" +
 				"\nManga ID: " + @kopernik[:id].chomp +
 				"\nChapters " + @kopernik[:chapters].chomp +
-				"\nVolumes " + @kopernik[:volumes].chomp +
+				"\nVolumes " + @kopernik[:volumes].chomp
 			end
 			puts "Status: " + @kopernik[:finished].chomp +
 				"\nScore: " + @kopernik[:score].chomp
@@ -137,23 +137,29 @@ class MAL
 	def getID
 		if @type == "anime"
 			results = @client.search_anime @name
-        else
-        	results = @client.search_manga @name
-        end
-        i = 0
-        results.sort_by(&:title).each do |sorted|
-            if i == 0
-                i += 1
-                @kopernik[:id] = sorted.id
-            end
-        end
+		else
+		        	results = @client.search_manga @name
+		end
+		i = 0
+		results.sort_by(&:title).each do |sorted|
+		           	if  i == 0
+				i += 1
+				@kopernik[:id] = sorted.id
+		 	end
+		end
 	end
 	def synopsis_gsub(synopsis)
-		synopsis = synopsis.gsub("<br />"," ")
+	 	synopsis = synopsis.gsub("<br />","")
 	 	synopsis = synopsis.gsub("&#039;","\'")
 	 	synopsis = synopsis.gsub("&quot;","\"")
 	 	synopsis = synopsis.gsub("&mdash;","—")
-	 	synopsis = synopsis.gsub("&rsquo;","’")
+	 	synopsis = synopsis.gsub("[spoiler]","")
+	 	synopsis = synopsis.gsub("[/spoiler]","")
+	 	synopsis = synopsis.gsub("[i]","\e[3m")
+	 	synopsis = synopsis.gsub("[/i]","\e[0m")
+	 	synopsis = synopsis.gsub("&times;","×")
+	 	synopsis = synopsis.gsub("&rsquo","’")
+	 	
 	 	return synopsis
 	end
 	def start
@@ -184,35 +190,38 @@ class MAL
 		when "search", "s"
 			if @type == "anime"
 				results = @client.search_anime @name
-        		results.sort_by(&:title).each do |anime|
+        				results.sort_by(&:title).each do |anime|
 	 				puts "\nName: \e[36m#{"#{anime.title}"}\e[0m (#{anime.id})" +
 	 				"\nDate: #{anime.start_date} - #{anime.end_date}" +
 	 				"\nEpisodes: \e[35m#{"#{anime.episodes}"}\e[0m" + "\nScore: #{anime.score}\n"
 	 			end
-        	else
-        		results = @client.search_manga @name
-        		results.sort_by(&:title).each do |manga|
-	 				puts "\nName: \e[36m#{"#{manga.title}"}\e[0m (#{manga.id})" +
-	 				"\nDate: #{manga.start_date} - #{manga.end_date}" +
-	 				"\nVolumes: \e[35m#{"#{manga.volumes}"}\e[0m" + "\nChapters: \e[35m#{"#{manga.chapters}"}\e[0m" + 
-	 				"\nScore: #{manga.score}\n"
+        			else
+	        			results = @client.search_manga @name
+	        			results.sort_by(&:title).each do |manga|
+		 			puts "\nName: \e[36m#{"#{manga.title}"}\e[0m (#{manga.id})" +
+		 			"\nDate: #{manga.start_date} - #{manga.end_date}" +
+		 			"\nVolumes: \e[35m#{"#{manga.volumes}"}\e[0m" + "\nChapters: \e[35m#{"#{manga.chapters}"}\e[0m" + 
+		 			"\nScore: #{manga.score}\n"
        			end
        		end
 		when "info", "i"
-			results = @client.search_anime @name
-        	results.sort_by(&:title).each do |anime|
-	 			puts "\nName: \e[36m#{"#{anime.title}"}\e[0m (#{anime.id})" +
-	 			"\nDate: #{anime.start_date} - #{anime.end_date}" +
-	 			"\nEpisodes: \e[35m#{"#{anime.episodes}"}\e[0m" + "\nScore: #{anime.score}\n\n" +
-	 			"Synopsis:\n#{synopsis_gsub(anime.synopsis)}" 
-	 		end
-	 		results = @client.search_manga @name
-        		results.sort_by(&:title).each do |manga|
-	 				puts "\nName: \e[36m#{"#{manga.title}"}\e[0m (#{manga.id})" +
-	 				"\nDate: #{manga.start_date} - #{manga.end_date}" +
-	 				"\nVolumes: \e[35m#{"#{manga.volumes}"}\e[0m" + "\nChapters: \e[35m#{"#{manga.chapters}"}\e[0m" + 
-	 				"\nScore: #{manga.score}\n" + "Synopsis:\n#{synopsis_gsub(manga.synopsis)}" 
-       			end
+			if @type == "anime" 
+				results = @client.search_anime @name
+	        			results.sort_by(&:title).each do |anime|
+		 			puts "\nName: \e[36m#{"#{anime.title}"}\e[0m (#{anime.id})" +
+		 			"\nDate: #{anime.start_date} - #{anime.end_date}" +
+		 			"\nEpisodes: \e[35m#{"#{anime.episodes}"}\e[0m" + "\nScore: #{anime.score}\n\n" +
+		 			"Synopsis:\n#{synopsis_gsub(anime.synopsis)}" 
+		 		end
+	 		else
+		 		results = @client.search_manga @name
+	        			results.sort_by(&:title).each do |manga|
+		 			puts "\nName: \e[36m#{"#{manga.title}"}\e[0m (#{manga.id})" +
+		 			"\nDate: #{manga.start_date} - #{manga.end_date}" +
+		 			"\nVolumes: \e[35m#{"#{manga.volumes}"}\e[0m" + "\nChapters: \e[35m#{"#{manga.chapters}"}\e[0m" + 
+		 			"\nScore: #{manga.score}\n" + "Synopsis:\n#{synopsis_gsub(manga.synopsis)}" 
+       				end
+			end
 		else
 			abort "Wrong argument bro!\n"
 		end
